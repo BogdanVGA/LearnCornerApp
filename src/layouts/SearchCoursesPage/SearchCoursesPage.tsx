@@ -65,7 +65,7 @@ export const SearchCoursesPage = () => {
             setHttpError(error.message);
         })
         window.scrollTo(0, 0);
-    }, [currentPage, searchUrl]);
+    }, [currentPage, coursesPerPage, searchUrl]);
 
     if (isLoading) {
         return (
@@ -133,41 +133,41 @@ export const SearchCoursesPage = () => {
                         </div>
                         <div className='col-4'>
                             <div className='dropdown'>
-                                <button className='btn btn-secondary dropdown-toggle' type='button'
-                                    id='dropdownMenuButton1' data-bs-toggle='dropdown'
+                                <button className='btn btn-secondary dropdown-toggle w-50 text-start' type='button'
+                                    id='dropdownMenuButton' data-bs-toggle='dropdown'
                                     aria-expanded='false'>
                                     {categorySelection}
                                 </button>
-                                <ul className='dropdown-menu' aria-labelledby='dropdownMenuButton1'>
-                                    <li onClick={() => categoryField('All')}>
-                                        <a className='dropdown-item' href='#'>
+                                <ul className='dropdown-menu' aria-labelledby='dropdownMenuButton'>
+                                    <li>
+                                        <button className='dropdown-item' onClick={() => categoryField('All')}>
                                             All
-                                        </a>
+                                        </button>
                                     </li>
-                                    <li onClick={() => categoryField('Automotive')}>
-                                        <a className='dropdown-item' href='#'>
+                                    <li>
+                                        <button className='dropdown-item' onClick={() => categoryField('Automotive')}>
                                             Automotive
-                                        </a>
+                                        </button>
                                     </li>
-                                    <li onClick={() => categoryField('Computer Science')}>
-                                        <a className='dropdown-item' href='#'>
+                                    <li>
+                                        <button className='dropdown-item' onClick={() => categoryField('Computer Science')}>
                                             Computer Science
-                                        </a>
+                                        </button>
                                     </li>
-                                    <li onClick={() => categoryField('Electronics')}>
-                                        <a className='dropdown-item' href='#'>
+                                    <li>
+                                        <button className='dropdown-item' onClick={() => categoryField('Electronics')}>
                                             Electronics
-                                        </a>
+                                        </button>
                                     </li>
-                                    <li onClick={() => categoryField('Electrical Engineering')}>
-                                        <a className='dropdown-item' href='#'>
+                                    <li>
+                                        <button className='dropdown-item' onClick={() => categoryField('Electrical Engineering')}>
                                             Electrical Engineering
-                                        </a>
+                                        </button>
                                     </li>
-                                    <li onClick={() => categoryField('Mechanical Engineering')}>
-                                        <a className='dropdown-item' href='#'>
+                                    <li>
+                                        <button className='dropdown-item' onClick={() => categoryField('Mechanical Engineering')}>
                                             Mechanical Engineering
-                                        </a>
+                                        </button>
                                     </li>
                                 </ul>
                             </div>
@@ -191,8 +191,9 @@ export const SearchCoursesPage = () => {
                             <h3>
                                 Can't find what you are looking for?
                             </h3>
-                            <a type='button' className='btn main-color btn-md px-4 me-md-2 fw-bold text-white'
-                                href='#'>Contact us</a>
+                            <button className='btn main-color btn-md px-4 me-md-2 fw-bold text-white'>
+                                Contact us
+                            </button>
                         </div>
                     }
 

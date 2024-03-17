@@ -1,13 +1,16 @@
 import { useEffect, useState } from "react";
+import { useForm } from "react-hook-form";
 import { SpinnerLoading } from "../Utils/SpinnerLoading";
-import UserModel from "../../model/UserModel";
 import { useOktaAuth } from "@okta/okta-react";
 
 export const UserProfile = () => {
 
     const { oktaAuth, authState } = useOktaAuth();
+    const { register, handleSubmit, setValue, formState: { errors } } = useForm();
 
-    const [userData, setUserData] = useState<UserModel>();
+    const [fullName, setFullName] = useState('');
+    const [accountType, setAccountType] = useState('');
+
     const [isLoading, setIsLoading] = useState(true);
     const [httpError, setHttpError] = useState(null);
 
@@ -17,51 +20,74 @@ export const UserProfile = () => {
 
             if (authState && authState.isAuthenticated) {
 
-                const loadedEmail = (await oktaAuth.getUser()).email;
+                try {
+                    const userInfo = await oktaAuth.getUser();
+                    const baseUrl: string = `http://localhost:8080/api/user?email=${userInfo.email}`;
+                    const requestOptions = {
+                        method: 'GET',
+                        headers: {
+                            Authorization: `Bearer ${authState?.accessToken?.accessToken}`,
+                            'Content-Type': 'application/json'
+                        }
+                    };
 
-                const baseUrl: string = `http://localhost:8080/api/user?email=${loadedEmail}`;
-                const requestOptions = {
-                    method: 'GET',
-                    headers: {
-                        Authorization: `Bearer ${authState?.accessToken?.accessToken}`,
-                        'Content-Type': 'application/json'
+                    const response = await fetch(baseUrl, requestOptions);
+                    if (!response.ok) {
+                        throw new Error('Error retrieving user data...');
                     }
-                };
 
-                const response = await fetch(baseUrl, requestOptions);
+                    const userData = await response.json();
 
-                if (!response.ok) {
-                    throw new Error('Error retrieving user data...');
+                    setValue('firstName', userData.firstName);
+                    setValue('lastName', userData.lastName);
+                    setValue('username', userData.username);
+                    setValue('email', userData.email);
+
+                    setFullName(userData.firstName + ' ' + userData.lastName);
+                    setAccountType(userData.userRole);
+
+
+                } catch (error: any) {
+                    setHttpError(error.message);
+                } finally {
+                    setIsLoading(false);
                 }
-
-                const responseJson = await response.json();
-
-                const id = responseJson.id;
-                const username = responseJson.username;
-                const email = responseJson.email;
-                const firstName = responseJson.firstName;
-                const lastName = responseJson.lastName;
-                const userRole = responseJson.userRole;
-
-                const loadedUserData: UserModel = {
-                    id: id,
-                    username: username,
-                    email: email,
-                    firstName: firstName,
-                    lastName: lastName,
-                    userRole: userRole
-                }
-
-                setUserData(loadedUserData);
+            } else {
+                setIsLoading(false);
             }
-            setIsLoading(false);
         };
-        fetchUserData().catch((error: any) => {
-            setIsLoading(false);
-            setHttpError(error.message);
-        })
+        fetchUserData();
+    }, [oktaAuth, authState, setValue]);
 
-    }, [oktaAuth, authState]);
+    const onSubmit = async (data: any) => {
+
+        const updateUrl = 'http://localhost:8080/api/user/update';
+        const requestOptions = {
+            method: 'POST',
+            headers: {
+                Authorization: `Bearer ${authState?.accessToken?.accessToken}`,
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(data),
+        };
+
+        try {
+            const response = await fetch(updateUrl, requestOptions);
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(`Failed to update profile: ${errorText}`);
+            }
+
+            const updatedUserData = await response.json();
+            console.log(updatedUserData);
+            alert('Profile updated successfully!');
+
+        } catch (error: any) {
+            console.error('Error updating profile:', error);
+            setHttpError(error.message);
+        }
+    };
 
     if (isLoading) {
         return (
@@ -77,51 +103,64 @@ export const UserProfile = () => {
         )
     }
 
-    const fullName = userData?.firstName + ' ' + userData?.lastName;
-    const accountType = 'Account type: ' + userData?.userRole;
-
     return (
         <div className='container rounded bg-white mt-5 mb-5'>
-            <div className='row'>
-                <div className='col-md-3 border-right'>
-                    <div className='d-flex flex-column align-items-center text-center p-3 py-5'>
-                        <img 
-                            className='rounded-circle mt-5'
-                            width='150px'
-                            src='https://st3.depositphotos.com/15648834/17930/v/600/depositphotos_179308454-stock-illustration-unknown-person-silhouette-glasses-profile.jpg'
-                            alt='User'>
-                        </img>
-                        <span className='font-weight-bold'>{fullName}</span>
-                        <span className='text-black-80'>{accountType}</span>
-                    </div>
-                </div>
-                <div className='col-md-5 border-right'>
-                    <div className='p-3 py-5'>
-                        <div className='d-flex justify-content-between align-items-center mb-3'>
-                            <h4 className='text-right'>Profile Settings</h4>
-                        </div>
-                        <div className='row mt-2'>
-                            <div className='col-md-6'><label className='labels'>Name</label>
-                                <input type='text' className='form-control mt-1' placeholder={userData?.firstName} />
+            <form onSubmit={handleSubmit(onSubmit)}>
+                <div className='row'>
+                    <div className='col-md-3 border-right'>
+                        <div className='d-flex flex-column align-items-center text-center p-3 py-5'>
+                            <img
+                                className='rounded-circle mt-5'
+                                width='150px'
+                                src='https://st3.depositphotos.com/15648834/17930/v/600/depositphotos_179308454-stock-illustration-unknown-person-silhouette-glasses-profile.jpg'
+                                alt='User'>
+                            </img>
+                            <div className='col-md-6'>
+                                <label className='font-weight-bold'>{fullName}</label>
                             </div>
-                            <div className='col-md-6'><label className='labels'>Surname</label>
-                                <input type='text' className='form-control mt-1' placeholder={userData?.lastName} />
+                            <div>
+                                <label className='text-black-80'>Account type: {accountType}</label>
                             </div>
-                        </div>
-                        <div className='row mt-2'>
-                            <div className='col-md-12 mt-3'><label className='labels'>User name</label>
-                                <input type='text' className='form-control mt-1' placeholder={userData?.username} />
-                            </div>
-                            <div className='col-md-12 mt-3'><label className='labels'>Email</label>
-                                <input type='text' className='form-control mt-1' placeholder={userData?.email} />
-                            </div>
-                        </div>
-                        <div className='mt-5 text-right'>
-                            <button className='btn main-color text-white profile-button' type='button'>Save Profile</button>
                         </div>
                     </div>
+                    <div className='col-md-5 border-right'>
+                        <div className='p-3 py-5'>
+                            <div className='d-flex justify-content-between align-items-center mb-3'>
+                                <h4 className='text-right'>Profile Settings</h4>
+                            </div>
+                            <div className='row mt-2'>
+                                <div className='col-md-6'>
+                                    <label className='labels'>First Name</label>
+                                    <input {...register('firstName', { required: true })} type='text' className='form-control mt-1' />
+                                    {errors.firstName && <span className="text-danger">First name is required.</span>}
+                                </div>
+                                <div className='col-md-6'>
+                                    <label className='labels'>Last Name</label>
+                                    <input {...register('lastName', { required: true })} type='text' className='form-control mt-1' />
+                                    {errors.lastName && <span className="text-danger">Last name is required.</span>}
+                                </div>
+                            </div>
+                            <div className='row mt-3'>
+                                <div className='col-md-12'>
+                                    <label className='labels'>Username</label>
+                                    <input {...register('username', { required: true })} type='text' className='form-control mt-1' />
+                                    {errors.username && <span className="text-danger">Username is required.</span>}
+                                </div>
+                                <div className='col-md-12 mt-3'>
+                                    <label className='labels'>Email</label>
+                                    <input {...register('email', { required: true })} type='text' className='form-control mt-1' />
+                                    {errors.email && <span className="text-danger">Email is required.</span>}
+                                </div>
+                            </div>
+                            <div className='mt-5 text-right'>
+                                <button className='btn btn-outline-dark main-color text-white profile-button' type='submit'>
+                                    Save Profile
+                                </button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-            </div>
+            </form>
         </div>
     );
 }
