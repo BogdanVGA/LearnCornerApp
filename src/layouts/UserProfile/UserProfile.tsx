@@ -63,7 +63,7 @@ export const UserProfile = () => {
 
         const updateUrl = 'http://localhost:8080/api/user/update';
         const requestOptions = {
-            method: 'POST',
+            method: 'PUT',
             headers: {
                 Authorization: `Bearer ${authState?.accessToken?.accessToken}`,
                 'Content-Type': 'application/json',
