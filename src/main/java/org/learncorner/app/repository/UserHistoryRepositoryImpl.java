@@ -26,7 +26,7 @@ public class UserHistoryRepositoryImpl implements UserHistoryRepository {
     }
 
     @Override
-    public Flux<UserHistoryDTO> findAllUserHistoryByEmail(String userEmail) {
+    public Flux<UserHistoryDTO> findAllUserHistoryByUsername(String username) {
         String query =
                 "SELECT " +
                 "ROW_NUMBER() OVER (ORDER BY history.start_date DESC) AS row_id, " +
@@ -34,7 +34,7 @@ public class UserHistoryRepositoryImpl implements UserHistoryRepository {
                 "FROM course " +
                 "LEFT JOIN history ON history.course_id = course.id " +
                 "LEFT JOIN users ON history.user_id = users.id " +
-                "WHERE users.email = :email";
-        return dbClient.sql(query).bind("email", userEmail).map(mapper::apply).all();
+                "WHERE users.username = :username";
+        return dbClient.sql(query).bind("username", username).map(mapper::apply).all();
     }
 }

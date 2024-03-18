@@ -77,15 +77,15 @@ public class SecurityConfiguration {
     // Customize the JWT Authentication Converter
     private Converter<Jwt, Mono<AbstractAuthenticationToken>> grantedAuthoritiesExtractor() {
         return jwt -> {
-            String email = jwt.getClaimAsString("sub");
-            return userRepo.findByEmail(email)
+            String username = jwt.getClaimAsString("sub");
+            return userRepo.findByUsername(username)
                     .map(user -> {
                         List<GrantedAuthority> authorityList =
                                 Collections.singletonList(new SimpleGrantedAuthority(user.getUserRole()));
                         System.out.println("User roles: " + authorityList);
                         // Create a new authentication token that includes the user's authorities and the Jwt itself.
                         UsernamePasswordAuthenticationToken authenticationToken =
-                                new UsernamePasswordAuthenticationToken(email, null, authorityList);
+                                new UsernamePasswordAuthenticationToken(username, null, authorityList);
                         // Include the JWT or specific claims as additional details.
                         authenticationToken.setDetails(jwt);
                         return authenticationToken;

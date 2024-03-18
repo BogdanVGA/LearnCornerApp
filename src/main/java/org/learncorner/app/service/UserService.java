@@ -19,4 +19,12 @@ public class UserService {
     public Mono<User> getUserByEmail(String email) {
         return userRepo.findByEmail(email);
     }
+
+    public Mono<User> getUserByUsername(String username) {
+        return userRepo.findByUsername(username);
+    }
+
+    public Mono<User> updateUser(User toUpdate) {
+        return userRepo.save(toUpdate);
+    }
 }

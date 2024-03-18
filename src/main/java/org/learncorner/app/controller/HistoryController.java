@@ -21,17 +21,17 @@ public class HistoryController {
         this.historyService = historyService;
     }
 
-    @GetMapping("/user/{userEmail}/courses")
-    public Mono<ResponseEntity<?>> listCoursesByUser(@PathVariable String userEmail) {
+    @GetMapping("/user/{username}/courses")
+    public Mono<ResponseEntity<?>> listCoursesByUser(@PathVariable String username) {
         return ReactiveSecurityContextHolder.getContext()
                 .map(SecurityContext::getAuthentication)
                 .flatMap(authentication -> {
                     Jwt jwt = (Jwt) authentication.getDetails();
-                    String jwtEmail = jwt.getClaimAsString("sub");
-                    if (jwtEmail == null || !jwtEmail.equals(userEmail)) {
-                        return Mono.just(ResponseEntity.status(403).body("Access denied: Email mismatch."));
+                    String jwtUsername = jwt.getClaimAsString("sub");
+                    if (jwtUsername == null || !jwtUsername.equals(username)) {
+                        return Mono.just(ResponseEntity.status(403).body("Access denied: User mismatch."));
                     } else {
-                        return historyService.userHistoryByEmail(userEmail)
+                        return historyService.userHistoryByUsername(username)
                                 .map(ResponseEntity::ok)
                                 .defaultIfEmpty(ResponseEntity.notFound().build());
                     }

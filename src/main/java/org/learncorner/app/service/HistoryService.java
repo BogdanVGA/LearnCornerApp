@@ -19,7 +19,7 @@ public class HistoryService {
         this.historyRepo = historyRepo;
     }
 
-    public Mono<List<UserHistoryDTO>> userHistoryByEmail(String userEmail) {
-        return historyRepo.findAllUserHistoryByEmail(userEmail).collectList();
+    public Mono<List<UserHistoryDTO>> userHistoryByUsername(String username) {
+        return historyRepo.findAllUserHistoryByUsername(username).collectList();
     }
 }

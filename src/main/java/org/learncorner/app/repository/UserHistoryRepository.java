@@ -7,5 +7,5 @@ public interface UserHistoryRepository {
 
     Flux<UserHistoryDTO> findAllUserHistory(Long userId);
 
-    Flux<UserHistoryDTO> findAllUserHistoryByEmail(String email);
+    Flux<UserHistoryDTO> findAllUserHistoryByUsername(String username);
 }
