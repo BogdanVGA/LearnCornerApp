@@ -56,7 +56,8 @@ public class UserController {
                                     user.setFirstName(userData.getFirstName());
                                     user.setLastName(userData.getLastName());
                                     user.setEmail(userData.getEmail());
-                                    return userService.updateUser(user).thenReturn(ResponseEntity.ok(user));
+                                    return userService.updateUser(user)
+                                            .thenReturn(ResponseEntity.status(202).body(user));
                                 })
                                 .defaultIfEmpty(ResponseEntity.notFound().build());
                     }
