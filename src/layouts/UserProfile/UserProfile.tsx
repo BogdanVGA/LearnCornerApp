@@ -10,6 +10,7 @@ export const UserProfile = () => {
 
     const [fullName, setFullName] = useState('');
     const [accountType, setAccountType] = useState('');
+    const [username, setUsername] = useState('');
 
     const [isLoading, setIsLoading] = useState(true);
     const [httpError, setHttpError] = useState(null);
@@ -22,7 +23,7 @@ export const UserProfile = () => {
 
                 try {
                     const userInfo = await oktaAuth.getUser();
-                    const baseUrl: string = `http://localhost:8080/api/user?email=${userInfo.email}`;
+                    const baseUrl: string = `http://localhost:8080/api/user?username=${userInfo.preferred_username}`;
                     const requestOptions = {
                         method: 'GET',
                         headers: {
@@ -45,6 +46,7 @@ export const UserProfile = () => {
 
                     setFullName(userData.firstName + ' ' + userData.lastName);
                     setAccountType(userData.userRole);
+                    setUsername(userData.username);
 
 
                 } catch (error: any) {
@@ -61,7 +63,7 @@ export const UserProfile = () => {
 
     const onSubmit = async (data: any) => {
 
-        const updateUrl = 'http://localhost:8080/api/user/update';
+        const updateUrl = `http://localhost:8080/api/user/update?username=${username}`;
         const requestOptions = {
             method: 'PUT',
             headers: {

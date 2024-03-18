@@ -20,9 +20,9 @@ export const UserCoursesPage = () => {
 
             if (authState && authState.isAuthenticated) {
 
-                const loadedEmail = (await oktaAuth.getUser()).email;
+                const loadedUsername = (await oktaAuth.getUser()).preferred_username;
 
-                const baseUrl: string = `http://localhost:8080/api/user/${loadedEmail}/courses`;
+                const baseUrl: string = `http://localhost:8080/api/user/${loadedUsername}/courses`;
                 const requestOptions = {
                     method: 'GET',
                     headers: {
