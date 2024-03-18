@@ -12,7 +12,7 @@ export const SearchCoursesPage = () => {
     const [coursesPerPage] = useState(4);
     const [totalAmountOfCourses, setTotalAmountOfCourses] = useState(0);
     const [totalPages, setTotalPages] = useState(0);
-    const [search, setSearch] = useState('');
+    const [searchTitle, setSearchTitle] = useState('');
     const [searchUrl, setSearchUrl] = useState('');
     const [categorySelection, setCategorySelection] = useState('Category');
 
@@ -83,10 +83,10 @@ export const SearchCoursesPage = () => {
 
     const searchHandleChange = () => {
         setCurrentPage(1);
-        if (search === '') {
+        if (searchTitle === '') {
             setSearchUrl('');
         } else {
-            setSearchUrl(`/search/byTitle?title=${search}&page=<pageNumber>&size=${coursesPerPage}`)
+            setSearchUrl(`/search/byTitle?title=${searchTitle}&page=<pageNumber>&size=${coursesPerPage}`)
         }
         setCategorySelection('Category');
     }
@@ -124,7 +124,7 @@ export const SearchCoursesPage = () => {
                             <div className='d-flex'>
                                 <input className='form-control me-2' type='search'
                                     placeholder='Course title' aria-labelledby='Search' 
-                                    onChange={e => setSearch(e.target.value)} />
+                                    onChange={e => setSearchTitle(e.target.value)} />
                                 <button className='btn btn-outline-dark'                                    
                                     onClick={() => searchHandleChange()}>
                                     Search
