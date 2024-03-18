@@ -4,6 +4,7 @@ package org.learncorner.app.config;
 import com.okta.spring.boot.oauth.Okta;
 import org.learncorner.app.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.convert.converter.Converter;
@@ -29,6 +30,9 @@ import java.util.List;
 @EnableWebFluxSecurity
 @EnableReactiveMethodSecurity
 public class SecurityConfiguration {
+
+    @Value("${jwt.jwkUrl}")
+    private String jwkUrl;
 
     private final UserRepository userRepo;
 
@@ -71,7 +75,7 @@ public class SecurityConfiguration {
     @Bean
     public ReactiveJwtDecoder jwtDecoder() {
         return NimbusReactiveJwtDecoder
-                .withJwkSetUri("https://dev-71768927.okta.com/oauth2/default/v1/keys").build();
+                .withJwkSetUri(jwkUrl).build();
     }
 
     // Customize the JWT Authentication Converter
