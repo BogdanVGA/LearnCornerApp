@@ -5,7 +5,7 @@ import reactor.core.publisher.Flux;
 
 public interface UserHistoryRepository {
 
-    Flux<UserHistoryDTO> findAllUserHistory(Long userId);
+    Flux<UserHistoryDTO> findAllUserHistoryById(Long userId);
 
     Flux<UserHistoryDTO> findAllUserHistoryByUsername(String username);
 }

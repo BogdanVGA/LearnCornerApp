@@ -16,7 +16,7 @@ public class UserHistoryRepositoryImpl implements UserHistoryRepository {
     }
 
     @Override
-    public Flux<UserHistoryDTO> findAllUserHistory(Long userId) {
+    public Flux<UserHistoryDTO> findAllUserHistoryById(Long userId) {
         String query =
                 "SELECT " +
                 "course.title, course.course_type, course.image, history.start_date, history.end_date, history.status " +
