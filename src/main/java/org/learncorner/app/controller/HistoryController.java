@@ -1,7 +1,6 @@
 package org.learncorner.app.controller;
 
 import org.learncorner.app.DTO.CourseRegisterDTO;
-import org.learncorner.app.entity.History;
 import org.learncorner.app.service.HistoryService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;

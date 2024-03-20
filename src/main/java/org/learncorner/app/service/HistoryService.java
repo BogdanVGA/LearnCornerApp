@@ -4,7 +4,7 @@ import org.learncorner.app.DTO.CourseRegisterDTO;
 import org.learncorner.app.DTO.UserHistoryDTO;
 import org.learncorner.app.entity.History;
 import org.learncorner.app.entity.User;
-import org.learncorner.app.error.EnrollmentResult;
+import org.learncorner.app.DTO.EnrollResponse;
 import org.learncorner.app.repository.HistoryRepository;
 import org.learncorner.app.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,13 +31,13 @@ public class HistoryService {
     }
 
     @Transactional
-    public Mono<EnrollmentResult> enrollUser(String username, CourseRegisterDTO request) {
+    public Mono<EnrollResponse> enrollUser(String username, CourseRegisterDTO request) {
         Mono<User> crtUserMono = userRepo.findByUsername(username);
         return crtUserMono
                 .flatMap(crtUser -> historyRepo.existsByUserIdAndCourseId(crtUser.getId(), request.getCourseId())
                 .flatMap(enrollmentExists -> {
                     if(enrollmentExists) {
-                        return Mono.just(new EnrollmentResult(true, null));
+                        return Mono.just(new EnrollResponse(true, null));
                     } else {
                         Long userId = crtUser.getId();
                         History enroll = new History();
@@ -47,7 +47,7 @@ public class HistoryService {
                         enroll.setEndDate(request.getEndDate());
                         enroll.setStatus("registered");
                         return historyRepo.save(enroll)
-                                .map(savedEnrollment -> new EnrollmentResult(false, savedEnrollment));
+                                .map(savedEnrollment -> new EnrollResponse(false, savedEnrollment));
                     }
                 }));
     }
