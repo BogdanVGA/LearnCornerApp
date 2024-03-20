@@ -1,7 +1,10 @@
 package org.learncorner.app.controller;
 
+import org.learncorner.app.DTO.CourseRegisterDTO;
+import org.learncorner.app.entity.History;
 import org.learncorner.app.service.HistoryService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.ReactiveSecurityContextHolder;
 import org.springframework.security.core.context.SecurityContext;
@@ -36,6 +39,21 @@ public class HistoryController {
                                 .defaultIfEmpty(ResponseEntity.notFound().build());
                     }
                 });
+    }
+
+    @PostMapping("/user/{username}/enroll")
+    public Mono<ResponseEntity<?>> registerUser(@PathVariable String username,
+                                                @RequestBody CourseRegisterDTO request) {
+        return historyService.enrollUser(username, request)
+                .flatMap(enrollmentResult -> {
+                    if(enrollmentResult.isEnrolled()) {
+                        return Mono.just(ResponseEntity.status(HttpStatus.CONFLICT)
+                                .body("User is already enrolled in the course"));
+                    } else {
+                        return Mono.just(ResponseEntity.status(HttpStatus.CREATED)
+                                .body(enrollmentResult.getEnrollment()));
+                    }
+                }).defaultIfEmpty(ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Failed to enroll user"));
     }
 }
 
