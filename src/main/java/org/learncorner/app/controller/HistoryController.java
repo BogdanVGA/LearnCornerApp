@@ -31,7 +31,8 @@ public class HistoryController {
                     Jwt jwt = (Jwt) authentication.getDetails();
                     String jwtUsername = jwt.getClaimAsString("sub");
                     if (jwtUsername == null || !jwtUsername.equals(username)) {
-                        return Mono.just(ResponseEntity.status(403).body("Access denied: User mismatch."));
+                        return Mono.just(ResponseEntity.status(HttpStatus.FORBIDDEN)
+                                .body("Access denied: User mismatch."));
                     } else {
                         return historyService.userHistoryByUsername(username)
                                 .map(ResponseEntity::ok)
