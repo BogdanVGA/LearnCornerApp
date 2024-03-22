@@ -1,10 +1,13 @@
 import { Link } from "react-router-dom";
 import EventModel from "../../model/EventModel";
 import { useOktaAuth } from "@okta/okta-react";
+import { useState } from "react";
 
 export const Event: React.FC<{ event: EventModel }> = (props) => {
 
-    const {authState} = useOktaAuth();
+    const { authState } = useOktaAuth();
+
+    const [httpError, setHttpError] = useState(null);
 
     const startDate = new Date(props.event.startDate);
     const endDate = new Date(props.event.endDate);
@@ -19,6 +22,55 @@ export const Event: React.FC<{ event: EventModel }> = (props) => {
 
     const startDateRender = startLongMonth + ' ' + startDateDay + ', ' + startDateYear;
     const endDateRender = endLongMonth + ' ' + endDateDay + ', ' + endDateYear;
+
+    const onRegister = async () => {
+        
+        const data = {
+            username: props.event.authUser,
+            courseId: props.event.courseId,
+            startDate: props.event.startDate,
+            endDate: props.event.endDate,
+        }
+
+        const registerUrl = `http://localhost:8080/api/user/${props.event.authUser}/enroll`;
+
+        const requestOptions = {
+            method: 'POST',
+            headers: {
+                Authorization: `Bearer ${authState?.accessToken?.accessToken}`,
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(data),
+        }
+
+        console.log(requestOptions);
+        console.log(registerUrl);
+
+        try {
+            const response = await fetch(registerUrl, requestOptions);
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(`Failed to enroll user: ${errorText}`);
+            }
+
+            const updatedUserData = await response.json();
+            console.log(updatedUserData);
+            alert('Enrollment successful!');
+
+        } catch (error: any) {
+            console.error('Error user enroll:', error);
+            setHttpError(error.message);
+        }
+    };
+
+    if (httpError) {
+        return (
+            <div className='container m-5'>
+                <p>{httpError}</p>
+            </div>
+        )
+    }
 
     return (
         <div>
@@ -38,13 +90,13 @@ export const Event: React.FC<{ event: EventModel }> = (props) => {
                     </div>
                     <div className='col'>
                         {authState?.isAuthenticated ?
-                        <Link className='btn btn-md main-color text-white btn-outline-dark' to='#'>
-                            Register
-                        </Link>
-                        :
-                        <Link className='btn btn-md main-color text-white btn-outline-dark' to='/login'>
-                            Register
-                        </Link>
+                            <button className='btn main-color text-white btn-outline-dark' onClick={() => onRegister()}>
+                                Register
+                            </button>
+                            :
+                            <Link className='btn btn-md main-color text-white btn-outline-dark' to='/login'>
+                                Register
+                            </Link>
                         }
                     </div>
                 </div>

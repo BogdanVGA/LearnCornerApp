@@ -8,14 +8,20 @@ import EventModel from "../../model/EventModel";
 import { CourseEvents } from "./CourseEvents";
 import { Link } from "react-router-dom";
 import { useOktaAuth } from "@okta/okta-react";
+import UserModel from "../../model/UserModel";
 
 export const CourseRegisterPage = () => {
 
-    const {authState} = useOktaAuth();
+    // Authentication state
+    const { oktaAuth, authState } = useOktaAuth();
+
+    // User state
+    const [ user, setUser ] = useState<UserModel>();
+    const [isLoadingUser, setIsLoadingUser] = useState(true);
 
     // Course State
     const [course, setCourse] = useState<CourseModel>();
-    const [isLoading, setIsLoading] = useState(true);    
+    const [isLoading, setIsLoading] = useState(true);
 
     // Review State
     const [reviews, setReviews] = useState<ReviewModel[]>([])
@@ -30,6 +36,7 @@ export const CourseRegisterPage = () => {
     const courseId = (window.location.pathname).split('/')[2];
 
     useEffect(() => {
+
         const fetchCourse = async () => {
             const baseUrl: string = `http://localhost:8080/api/courses/${courseId}`;
 
@@ -61,7 +68,9 @@ export const CourseRegisterPage = () => {
     }, [courseId]);
 
     useEffect(() => {
+
         const fetchCourseReviews = async () => {
+            
             const reviewUrl: string = `http://localhost:8080/api/reviews/search/byCourseId?courseId=${courseId}`;
 
             const responseReviews = await fetch(reviewUrl);
@@ -106,7 +115,9 @@ export const CourseRegisterPage = () => {
     }, [courseId]);
 
     useEffect(() => {
+
         const fetchCourseEvents = async () => {
+
             const eventUrl: string = `http://localhost:8080/api/events/search/byCourseId?courseId=${courseId}`;
 
             const responseEvents = await fetch(eventUrl);
@@ -128,7 +139,8 @@ export const CourseRegisterPage = () => {
                     places: responseData[key].places,
                     maxPlaces: responseData[key].maxPlaces,
                     startDate: responseData[key].startDate,
-                    endDate: responseData[key].endDate
+                    endDate: responseData[key].endDate,
+                    authUser: user?.username
                 });
             }
 
@@ -140,9 +152,54 @@ export const CourseRegisterPage = () => {
             setIsLoadingEvent(false);
             setHttpError(error.message);
         })
-    }, [courseId]);
+    }, [courseId, user]);
 
-    if (isLoading || isLoadingReview || isLoadingEvent) {
+    useEffect(() => {
+
+        const fetchUserData = async () => {
+
+            if (authState && authState.isAuthenticated) {
+
+                try {
+                    const userInfo = await oktaAuth.getUser();
+                    const baseUrl: string = `http://localhost:8080/api/user?username=${userInfo.preferred_username}`;
+                    const requestOptions = {
+                        method: 'GET',
+                        headers: {
+                            Authorization: `Bearer ${authState?.accessToken?.accessToken}`,
+                            'Content-Type': 'application/json'
+                        }
+                    };
+
+                    const response = await fetch(baseUrl, requestOptions);
+                    if (!response.ok) {
+                        throw new Error('Error retrieving user data...');
+                    }
+
+                    const userData = await response.json();
+                    const loggedUser: UserModel = {
+                        id: userData.id,
+                        username: userData.username,
+                        email: userData.email,
+                        firstName: userData.firstName,
+                        lastName: userData.lastName,
+                        userRole: userData.userRole
+                    };
+                    setUser(loggedUser);
+
+                } catch (error: any) {
+                    setHttpError(error.message);
+                } finally {
+                    setIsLoadingUser(false);
+                }
+            } else {
+                setIsLoadingUser(false);
+            }
+        };
+        fetchUserData();
+    }, [authState, oktaAuth]);
+
+    if (isLoading || isLoadingReview || isLoadingEvent || isLoadingUser) {
         return (
             <SpinnerLoading />
         )
@@ -155,6 +212,8 @@ export const CourseRegisterPage = () => {
             </div>
         )
     }
+
+    console.log(user);
 
     return (
         <div>
@@ -188,9 +247,11 @@ export const CourseRegisterPage = () => {
                     </div>
 
                 </div>
-                <hr />
+                <hr/>
                 {course?.courseType === 'F2F' ?
-                    <CourseEvents events={courseEvents} courseId={course?.id} mobile={false} />
+                    <div className='row'>
+                        <CourseEvents events={courseEvents} mobile={false} />
+                    </div>
                     :
                     <div className='row mt-5'>
                         <div className='col-sm-2 col-md-2'>
@@ -201,17 +262,17 @@ export const CourseRegisterPage = () => {
                                 <div className='col'>
                                     <p className='lead'>
                                         Comfortable learning at a stress free pace.
-                                    </p>                                    
+                                    </p>
                                 </div>
                                 <div className='col-2'>
                                     {authState?.isAuthenticated ?
-                                    <Link className='btn btn-md main-color text-white btn-outline-dark' to='#'>
-                                        Register
-                                    </Link>
-                                    :
-                                    <Link className='btn btn-md main-color text-white btn-outline-dark' to='/login'>
-                                        Register
-                                    </Link>
+                                        <Link className='btn btn-md main-color text-white btn-outline-dark' to='#'>
+                                            Register
+                                        </Link>
+                                        :
+                                        <Link className='btn btn-md main-color text-white btn-outline-dark' to='/login'>
+                                            Login To Register
+                                        </Link>
                                     }
                                 </div>
                             </div>
@@ -228,14 +289,14 @@ export const CourseRegisterPage = () => {
                     {course?.image ?
                         <img
                             src={`data:image/jpeg;base64,${course?.image}`}
-                            width='350' 
+                            width='350'
                             height='200'
                             alt='Course'
                         />
                         :
                         <img
                             src={require('./../../Images/CoursesImages/diesel_eng.jpg')}
-                            width='226' 
+                            width='226'
                             height='349'
                             alt='Course'
                         />
@@ -251,7 +312,7 @@ export const CourseRegisterPage = () => {
                 </div>
                 <hr />
                 {course?.courseType === 'F2F' ?
-                    <CourseEvents events={courseEvents} courseId={course?.id} mobile={true} />
+                    <CourseEvents events={courseEvents} mobile={true} />
                     :
                     <div className='row mt-5'>
                         <div className='col-sm-2 col-md-2'>
@@ -262,7 +323,7 @@ export const CourseRegisterPage = () => {
                                 <div className='col'>
                                     <p className='lead'>
                                         Comfortable learning at a stress free pace.
-                                    </p>                                    
+                                    </p>
                                 </div>
                                 <div className='col-2'>
                                     <Link className='btn btn-md main-color text-white btn-outline-dark' to='#'>

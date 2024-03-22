@@ -2,7 +2,7 @@ import { Link } from "react-router-dom";
 import EventModel from "../../model/EventModel";
 import { Event } from "../Utils/Event";
 
-export const CourseEvents: React.FC<{ events: EventModel[], courseId: number | undefined, mobile: boolean }> = (props) => {
+export const CourseEvents: React.FC<{ events: EventModel[], mobile: boolean }> = (props) => {
 
     return (
         <div className={props.mobile ? 'mt-3' : 'row mt-5'}>
