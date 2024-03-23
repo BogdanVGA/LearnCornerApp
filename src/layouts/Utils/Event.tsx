@@ -7,7 +7,8 @@ export const Event: React.FC<{ event: EventModel }> = (props) => {
 
     const { authState } = useOktaAuth();
 
-    const [httpError, setHttpError] = useState(null);
+    const [showModal, setShowModal] = useState(false);
+    const [modalMessage, setModalMessage] = useState('');
 
     const startDate = new Date(props.event.startDate);
     const endDate = new Date(props.event.endDate);
@@ -24,10 +25,18 @@ export const Event: React.FC<{ event: EventModel }> = (props) => {
     const endDateRender = endLongMonth + ' ' + endDateDay + ', ' + endDateYear;
 
     const onRegister = async () => {
-        
+
+        if (props.event.places < 1) {
+            setModalMessage('There are no more available places.');
+            setShowModal(true);
+            return;
+        }
+
         const data = {
             username: props.event.authUser,
             courseId: props.event.courseId,
+            eventId: props.event.id,
+            places: props.event.places - 1,
             startDate: props.event.startDate,
             endDate: props.event.endDate,
         }
@@ -56,24 +65,40 @@ export const Event: React.FC<{ event: EventModel }> = (props) => {
 
             const updatedUserData = await response.json();
             console.log(updatedUserData);
-            alert('Enrollment successful!');
+            setModalMessage('Enrollment successfull!');
+            setShowModal(true);
 
         } catch (error: any) {
             console.error('Error user enroll:', error);
-            setHttpError(error.message);
+            setModalMessage(error.message);
+            setShowModal(true);
         }
     };
 
-    if (httpError) {
-        return (
-            <div className='container m-5'>
-                <p>{httpError}</p>
-            </div>
-        )
-    }
-
     return (
         <div>
+            {/* Modal Structure */}
+            <div className={`modal fade ${showModal ? "show" : ""}`} tabIndex={-1} aria-labelledby="modalLabel"
+                aria-hidden={!showModal} style={{ display: showModal ? "block" : "none" }} >
+                <div className="modal-dialog">
+                    <div className="modal-content">
+                        <div className="modal-header">
+                            <h5 className="modal-title" id="modalLabel">Information</h5>
+                            <button type="button" className="btn-close" data-bs-dismiss="modal"
+                                aria-label="Close" onClick={() => setShowModal(false)}></button>
+                        </div>
+                        <div className="modal-body">
+                            {modalMessage}
+                        </div>
+                        <div className="modal-footer">
+                            <button type="button" className="btn btn-secondary" data-bs-dismiss="modal"
+                                onClick={() => setShowModal(false)}>Close</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {/* Event Information */}
             <div className='col-sm-12 col-md-12'>
                 <div className='row'>
                     <div className='col mt-2'>
