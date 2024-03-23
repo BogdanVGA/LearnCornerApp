@@ -9,6 +9,8 @@ public class CourseRegisterDTO {
 
     private String username;
     private Long courseId;
+    private Long eventId;
+    private int places;
     private LocalDate startDate;
     private LocalDate endDate;
 }
