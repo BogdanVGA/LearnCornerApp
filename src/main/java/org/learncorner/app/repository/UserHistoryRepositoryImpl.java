@@ -30,7 +30,7 @@ public class UserHistoryRepositoryImpl implements UserHistoryRepository {
         String query =
                 "SELECT " +
                 "ROW_NUMBER() OVER (ORDER BY history.start_date DESC) AS row_id, " +
-                "course.title, course.course_type, course.image, history.start_date, history.end_date, history.status " +
+                "course.id, course.title, course.course_type, course.image, history.start_date, history.end_date, history.status " +
                 "FROM course " +
                 "LEFT JOIN history ON history.course_id = course.id " +
                 "LEFT JOIN users ON history.user_id = users.id " +

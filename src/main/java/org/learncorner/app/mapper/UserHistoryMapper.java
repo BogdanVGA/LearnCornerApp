@@ -13,6 +13,7 @@ public class UserHistoryMapper implements BiFunction<Row, Object, UserHistoryDTO
     @Override
     public UserHistoryDTO apply(Row row, Object o) {
         Long rowId = row.get("row_id", Long.class);
+        Long courseId = row.get("id", Long.class);
         String courseTitle = row.get("title", String.class);
         String courseType = row.get("course_type", String.class);
         String courseImage = row.get("image", String.class);
@@ -21,6 +22,7 @@ public class UserHistoryMapper implements BiFunction<Row, Object, UserHistoryDTO
         String status = row.get("status", String.class);
         UserHistoryDTO userHistory = new UserHistoryDTO();
         userHistory.setRowId(rowId);
+        userHistory.setCourseId(courseId);
         userHistory.setCourseTitle(courseTitle);
         userHistory.setCourseType(courseType);
         userHistory.setCourseImage(courseImage);

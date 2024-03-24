@@ -8,6 +8,7 @@ import java.time.LocalDate;
 public class UserHistoryDTO {
 
     private Long rowId;
+    private Long courseId;
     private String courseTitle;
     private String courseType;
     private String courseImage;
