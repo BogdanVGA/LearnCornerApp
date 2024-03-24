@@ -1,5 +1,6 @@
 class UserHistoryModel {
     rowId: number;
+    courseId: number;
     courseTitle: string;
     courseType: string;
     courseImage?: string;
@@ -7,8 +8,11 @@ class UserHistoryModel {
     endDate: string;
     status: string;
 
-    constructor(rowId: number, courseTitle: string, courseType: string, courseImage: string, startDate: string, endDate: string, status: string) {
+    constructor(rowId: number, courseId: number, courseTitle: string, courseType: string, 
+        courseImage: string, startDate: string, endDate: string, status: string) {
+            
         this.rowId = rowId;
+        this.courseId = courseId;
         this.courseTitle = courseTitle;
         this.courseType = courseType;
         this.courseImage = courseImage;

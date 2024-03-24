@@ -44,6 +44,7 @@ export const UserCoursesPage = () => {
                 for (const key in responseJson) {
                     loadedUserHistoryItems.push({
                         rowId: responseJson[key].rowId,
+                        courseId: responseJson[key].courseId,
                         courseTitle: responseJson[key].courseTitle,
                         courseType: responseJson[key].courseType,
                         courseImage: responseJson[key].courseImage,

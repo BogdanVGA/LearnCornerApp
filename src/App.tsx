@@ -11,6 +11,7 @@ import { oktaConfig } from './lib/oktaConfig';
 import { OktaAuth, toRelativeUrl } from '@okta/okta-auth-js';
 import { LoginCallback, Security } from '@okta/okta-react';
 import LoginWidget from './Auth/LoginWidget';
+import { ReviewPage } from './layouts/ReviewPage/ReviewPage';
 
 const oktaAuth = new OktaAuth(oktaConfig);
 
@@ -49,6 +50,9 @@ export const App = () => {
             </Route>
             <Route path='/user/profile'>
               <UserProfile />
+            </Route>
+            <Route path='/user/review'>
+              <ReviewPage/>
             </Route>
             <Route path='/login' render={
               () => <LoginWidget config={oktaConfig} />
