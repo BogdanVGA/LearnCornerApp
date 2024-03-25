@@ -2,15 +2,16 @@ package org.learncorner.app.controller;
 
 import org.learncorner.app.DTO.CourseRegisterDTO;
 import org.learncorner.app.DTO.OnlineCourseRegisterDTO;
+import org.learncorner.app.DTO.UserHistoryDTO;
 import org.learncorner.app.service.HistoryService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.context.ReactiveSecurityContextHolder;
-import org.springframework.security.core.context.SecurityContext;
-import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
+
+import java.util.List;
 
 @CrossOrigin("http://localhost:3000")
 @RestController
@@ -24,24 +25,15 @@ public class HistoryController {
         this.historyService = historyService;
     }
 
+    @PreAuthorize("#username == authentication.details.claims['sub']")
     @GetMapping("/user/{username}/courses")
-    public Mono<ResponseEntity<?>> listCoursesByUser(@PathVariable String username) {
-        return ReactiveSecurityContextHolder.getContext()
-                .map(SecurityContext::getAuthentication)
-                .flatMap(authentication -> {
-                    Jwt jwt = (Jwt) authentication.getDetails();
-                    String jwtUsername = jwt.getClaimAsString("sub");
-                    if (jwtUsername == null || !jwtUsername.equals(username)) {
-                        return Mono.just(ResponseEntity.status(HttpStatus.FORBIDDEN)
-                                .body("Access denied: User mismatch."));
-                    } else {
-                        return historyService.userHistoryByUsername(username)
-                                .map(ResponseEntity::ok)
-                                .defaultIfEmpty(ResponseEntity.notFound().build());
-                    }
-                });
+    public Mono<ResponseEntity<List<UserHistoryDTO>>> listCoursesByUser(@PathVariable String username) {
+        return historyService.userHistoryByUsername(username)
+                .map(ResponseEntity::ok)
+                .defaultIfEmpty(ResponseEntity.notFound().build());
     }
 
+    @PreAuthorize("#username == authentication.details.claims['sub']")
     @PostMapping("/user/{username}/enroll")
     public Mono<ResponseEntity<?>> registerUser(@PathVariable String username,
                                                 @RequestBody CourseRegisterDTO request) {
@@ -57,6 +49,7 @@ public class HistoryController {
                 }).defaultIfEmpty(ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Failed to enroll user"));
     }
 
+    @PreAuthorize("#username == authentication.details.claims['sub']")
     @PostMapping("/user/{username}/enrollOnline")
     public Mono<ResponseEntity<?>> registerUserOnline(@PathVariable String username,
                                                       @RequestBody OnlineCourseRegisterDTO request) {
