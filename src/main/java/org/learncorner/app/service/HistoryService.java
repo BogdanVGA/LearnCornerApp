@@ -1,6 +1,7 @@
 package org.learncorner.app.service;
 
 import org.learncorner.app.DTO.CourseRegisterDTO;
+import org.learncorner.app.DTO.OnlineCourseRegisterDTO;
 import org.learncorner.app.DTO.UserHistoryDTO;
 import org.learncorner.app.entity.Event;
 import org.learncorner.app.entity.History;
@@ -14,6 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import reactor.core.publisher.Mono;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @Service
@@ -40,7 +42,6 @@ public class HistoryService {
     public Mono<EnrollResponse> enrollUser(String username, CourseRegisterDTO request) {
         Mono<User> crtUserMono = userRepo.findByUsername(username);
         Mono<Event> crtEventMono = eventRepo.findById(request.getEventId());
-
         return Mono.zip(crtUserMono, crtEventMono)
                 .flatMap(tuple -> {
                     User crtUser = tuple.getT1();
@@ -64,5 +65,28 @@ public class HistoryService {
                                 }
                             });
                 });
+    }
+
+    @Transactional
+    public Mono<EnrollResponse> enrollUserOnline(String username, OnlineCourseRegisterDTO request) {
+        Mono<User> crtUserMono = userRepo.findByUsername(username);
+        return crtUserMono.flatMap(crtUser -> {
+            Long userId = crtUser.getId();
+            return historyRepo.existsByUserIdAndCourseId(userId, request.getCourseId())
+                    .flatMap(enrollmentExists -> {
+                        if(enrollmentExists) {
+                            return Mono.just(new EnrollResponse(true, null));
+                        } else {
+                            History enroll = new History();
+                            enroll.setCourseId(request.getCourseId());
+                            enroll.setUserId(userId);
+                            enroll.setStartDate(LocalDate.now());
+                            enroll.setEndDate(null);
+                            enroll.setStatus("in progress");
+                            return historyRepo.save(enroll)
+                                    .map(savedEnroll -> new EnrollResponse(false, savedEnroll));
+                        }
+                    });
+        });
     }
 }

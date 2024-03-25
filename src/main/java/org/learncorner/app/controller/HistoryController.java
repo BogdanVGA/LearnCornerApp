@@ -1,6 +1,7 @@
 package org.learncorner.app.controller;
 
 import org.learncorner.app.DTO.CourseRegisterDTO;
+import org.learncorner.app.DTO.OnlineCourseRegisterDTO;
 import org.learncorner.app.service.HistoryService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -54,6 +55,22 @@ public class HistoryController {
                                 .body(enrollmentResult.getEnrollment()));
                     }
                 }).defaultIfEmpty(ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Failed to enroll user"));
+    }
+
+    @PostMapping("/user/{username}/enrollOnline")
+    public Mono<ResponseEntity<?>> registerUserOnline(@PathVariable String username,
+                                                      @RequestBody OnlineCourseRegisterDTO request) {
+        return historyService.enrollUserOnline(username, request)
+                .flatMap(enrollResult -> {
+                    if(enrollResult.isEnrolled()) {
+                        return Mono.just(ResponseEntity.status(HttpStatus.CONFLICT)
+                                .body("User is already enrolled in this online course"));
+                    } else {
+                        return Mono.just(ResponseEntity.status(HttpStatus.CREATED)
+                                .body(enrollResult.getEnrollment()));
+                    }
+                }).defaultIfEmpty(ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body("Failed to enroll user to online course"));
     }
 }
 

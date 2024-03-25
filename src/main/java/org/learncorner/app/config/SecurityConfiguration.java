@@ -54,9 +54,7 @@ public class SecurityConfiguration {
                     return config;
                 }))
                 .authorizeExchange((exchanges) -> exchanges
-                        .pathMatchers("/api/reviews/auth/**").authenticated()
-                        .pathMatchers( "/api/events/auth/**").authenticated()
-                        .pathMatchers("/api/courses/auth/**").authenticated()
+                        .pathMatchers("/api/author/**").authenticated()
                         .pathMatchers("/api/user/**").authenticated()
                         .anyExchange().permitAll()
                 ).oauth2ResourceServer((oauth2) -> oauth2.jwt(jwt -> {
