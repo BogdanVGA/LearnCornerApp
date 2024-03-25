@@ -69,7 +69,6 @@ export const Event: React.FC<{ event: EventModel }> = (props) => {
             setShowModal(true);
 
         } catch (error: any) {
-            console.error('Error user enroll:', error);
             setModalMessage(error.message);
             setShowModal(true);
         }
