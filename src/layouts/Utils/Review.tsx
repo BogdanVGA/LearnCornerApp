@@ -13,22 +13,21 @@ export const Review: React.FC<{ review: ReviewModel }> = (props) => {
 
     return (
         <div>
-            <div className='col-sm-10 col-md-10'>
+            <div className='col-sm-12 col-md-12'>
                 <div className='row'>
-                    <div className='col'>
-                        <h5>{props.review.username}</h5>                        
+                    <div className='col-sm-2 col-md-2'>
+                        <h5>{props.review.username}</h5>
                     </div>
-                    <div className='col'>
+                    <div className='col-sm-2 col-md-2'>
                         {dateRender}
                     </div>
-                    <div className='col'>
+                    <div className='col-sm-2 col-md-2'>
                         <StarsReview rating={props.review.rating} size={16} />
                     </div>
-                    <div className='col-6'>
+                    <div className='col-sm-6 col-md-6'>
                         {props.review.reviewText}
                     </div>
                 </div>
-
             </div>
             <hr />
         </div>

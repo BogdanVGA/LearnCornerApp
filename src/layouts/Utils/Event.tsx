@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import EventModel from "../../model/EventModel";
 import { useOktaAuth } from "@okta/okta-react";
 import { useState } from "react";
+import { Modal } from "./Modal";
 
 export const Event: React.FC<{ event: EventModel }> = (props) => {
 
@@ -74,45 +75,30 @@ export const Event: React.FC<{ event: EventModel }> = (props) => {
         }
     };
 
+    const onCloseModal = () => {
+        setShowModal(false);
+    };
+
     return (
         <div>
-            {/* Modal Structure */}
-            <div className={`modal fade ${showModal ? "show" : ""}`} tabIndex={-1} aria-labelledby="modalLabel"
-                aria-hidden={!showModal} style={{ display: showModal ? "block" : "none" }} >
-                <div className="modal-dialog">
-                    <div className="modal-content">
-                        <div className="modal-header">
-                            <h5 className="modal-title" id="modalLabel">Information</h5>
-                            <button type="button" className="btn-close" data-bs-dismiss="modal"
-                                aria-label="Close" onClick={() => setShowModal(false)}></button>
-                        </div>
-                        <div className="modal-body">
-                            {modalMessage}
-                        </div>
-                        <div className="modal-footer">
-                            <button type="button" className="btn btn-secondary" data-bs-dismiss="modal"
-                                onClick={() => setShowModal(false)}>Close</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
+            <Modal showModal={showModal} modalMessage={modalMessage} onClose={onCloseModal}/>
+            
             {/* Event Information */}
             <div className='col-sm-12 col-md-12'>
                 <div className='row'>
-                    <div className='col mt-2'>
+                    <div className='col-sm-3 col-md-3 mt-2'>
                         Start date: {startDateRender}
                     </div>
-                    <div className='col mt-2'>
+                    <div className='col-sm-3 col-md-3 mt-2'>
                         End date: {endDateRender}
                     </div>
-                    <div className='col mt-2'>
+                    <div className='col-sm-2 col-md-2 mt-2'>
                         Available places: {props.event.places}
                     </div>
-                    <div className='col mt-2'>
+                    <div className='col-sm-2 col-md-2 mt-2'>
                         Max. places: {props.event.maxPlaces}
                     </div>
-                    <div className='col'>
+                    <div className='col-sm-2 col-md-2'>
                         {authState?.isAuthenticated ?
                             <button className='btn main-color text-white btn-outline-dark' onClick={() => onRegister()}>
                                 Register

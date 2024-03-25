@@ -9,6 +9,7 @@ import { CourseEvents } from "./CourseEvents";
 import { Link } from "react-router-dom";
 import { useOktaAuth } from "@okta/okta-react";
 import UserModel from "../../model/UserModel";
+import { Modal } from "../Utils/Modal";
 
 export const CourseRegisterPage = () => {
 
@@ -16,7 +17,7 @@ export const CourseRegisterPage = () => {
     const { oktaAuth, authState } = useOktaAuth();
 
     // User state
-    const [ user, setUser ] = useState<UserModel>();
+    const [user, setUser] = useState<UserModel>();
     const [isLoadingUser, setIsLoadingUser] = useState(true);
 
     // Course State
@@ -32,7 +33,8 @@ export const CourseRegisterPage = () => {
     const [courseEvents, setCourseEvents] = useState<EventModel[]>([])
     const [isLoadingEvent, setIsLoadingEvent] = useState(true);
 
-    const [httpError, setHttpError] = useState(null);
+    const [showModal, setShowModal] = useState(false);
+    const [modalMessage, setModalMessage] = useState('');
     const courseId = (window.location.pathname).split('/')[2];
 
     useEffect(() => {
@@ -63,14 +65,15 @@ export const CourseRegisterPage = () => {
         };
         fetchCourse().catch((error: any) => {
             setIsLoading(false);
-            setHttpError(error.message);
+            setModalMessage(error.message);
+            setShowModal(true);
         })
     }, [courseId]);
 
     useEffect(() => {
 
         const fetchCourseReviews = async () => {
-            
+
             const reviewUrl: string = `http://localhost:8080/api/reviews/search/byCourseId?courseId=${courseId}`;
 
             const responseReviews = await fetch(reviewUrl);
@@ -110,7 +113,8 @@ export const CourseRegisterPage = () => {
 
         fetchCourseReviews().catch((error: any) => {
             setIsLoadingReview(false);
-            setHttpError(error.message);
+            setModalMessage(error.message);
+            setShowModal(true);
         })
     }, [courseId]);
 
@@ -150,7 +154,8 @@ export const CourseRegisterPage = () => {
 
         fetchCourseEvents().catch((error: any) => {
             setIsLoadingEvent(false);
-            setHttpError(error.message);
+            setModalMessage(error.message);
+            setShowModal(true);
         })
     }, [courseId, user]);
 
@@ -188,7 +193,8 @@ export const CourseRegisterPage = () => {
                     setUser(loggedUser);
 
                 } catch (error: any) {
-                    setHttpError(error.message);
+                    setModalMessage(error.message);
+                    setShowModal(true);
                 } finally {
                     setIsLoadingUser(false);
                 }
@@ -205,70 +211,102 @@ export const CourseRegisterPage = () => {
         )
     }
 
-    if (httpError) {
-        return (
-            <div className='container m-5'>
-                <p>{httpError}</p>
-            </div>
-        )
-    }
-
     console.log(user);
+
+    const onRegister = async () => {
+
+        const data = {
+            username: user?.username,
+            courseId: course?.id,
+        }
+
+        const registerUrl = `http://localhost:8080/api/user/${user?.username}/enrollOnline`;
+
+        const requestOptions = {
+            method: 'POST',
+            headers: {
+                Authorization: `Bearer ${authState?.accessToken?.accessToken}`,
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(data),
+        }
+
+        console.log(requestOptions);
+        console.log(registerUrl);
+
+        try {
+            const response = await fetch(registerUrl, requestOptions);
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(`Failed to enroll user: ${errorText}`);
+            }
+
+            const updatedUserData = await response.json();
+            console.log(updatedUserData);
+            setModalMessage('Enrollment successfull!');
+            setShowModal(true);
+
+        } catch (error: any) {
+            setModalMessage(error.message);
+            setShowModal(true);
+        }
+    };
+
+    const onCloseModal = () => {
+        setShowModal(false);
+    };
 
     return (
         <div>
+            <Modal showModal={showModal} modalMessage={modalMessage} onClose={onCloseModal} />
             {/* desktop section */}
-            <div className='container-fluid m-5 d-none d-lg-block'>
-                <div className='row mt-5'>
-                    <div className='col-sm-2 col-md-2'>
+            <div className='container-fluid p-5 d-none d-lg-block'>
+                <div className='row'>
+                    <div className='col-2'>
                         {course?.image ?
                             <img
                                 src={`data:image/jpeg;base64,${course?.image}`}
-                                width='350'
-                                height='h-100'
+                                style={{ width: '100%', height: 'auto' }}
                                 alt='Course'
                             />
                             :
                             <img
                                 src={require('./../../Images/CoursesImages/diesel_eng.jpg')}
-                                width='350'
-                                height='h-100'
+                                style={{ width: '100%', height: 'auto' }}
                                 alt='Course'
                             />
                         }
                     </div>
-                    <div className='col-sm-8 col-md-8 container'>
-                        <div className='ml-2'>
-                            <h2>{course?.title}</h2>
-                            <h5 className='text-dark'>{course?.author}</h5>
-                            <p className='lead'>{course?.description}</p>
-                            <StarsReview rating={totalStars} size={24}></StarsReview>
-                        </div>
+                    <div className='col-9'>
+                        <h2>{course?.title}</h2>
+                        <h5 className='text-dark'>{course?.author}</h5>
+                        <p className='lead text-wrap'>{course?.description}</p>
+                        <StarsReview rating={totalStars} size={24}></StarsReview>
                     </div>
-
                 </div>
-                <hr/>
+                <hr />
                 {course?.courseType === 'F2F' ?
                     <div className='row'>
                         <CourseEvents events={courseEvents} mobile={false} />
                     </div>
                     :
                     <div className='row mt-5'>
-                        <div className='col-sm-2 col-md-2'>
+                        <div className='col-2'>
                             <h5>Online course: </h5>
                         </div>
                         <div className='col-sm-10 col-md-10'>
                             <div className='row'>
-                                <div className='col'>
+                                <div className='col-sm-10 col-md-10'>
                                     <p className='lead'>
                                         Comfortable learning at a stress free pace.
                                     </p>
                                 </div>
-                                <div className='col-2'>
+                                <div className='col-sm-2 col-md-2'>
                                     {authState?.isAuthenticated ?
-                                        <Link className='btn btn-md main-color text-white btn-outline-dark' to='#'>
+                                        <button className='btn btn-md main-color text-white btn-outline-dark' onClick={onRegister}>
                                             Register
-                                        </Link>
+                                        </button>
                                         :
                                         <Link className='btn btn-md main-color text-white btn-outline-dark' to='/login'>
                                             Login To Register
@@ -284,20 +322,18 @@ export const CourseRegisterPage = () => {
             </div>
 
             {/* mobile section */}
-            <div className='container d-lg-none mt-5'>
+            <div className='container mt-5 d-lg-none'>
                 <div className='d-flex justify-content-center align-items-center'>
                     {course?.image ?
                         <img
                             src={`data:image/jpeg;base64,${course?.image}`}
-                            width='350'
-                            height='200'
+                            style={{ width: '100%', height: 'auto' }}
                             alt='Course'
                         />
                         :
                         <img
                             src={require('./../../Images/CoursesImages/diesel_eng.jpg')}
-                            width='226'
-                            height='349'
+                            style={{ width: '100%', height: 'auto' }}
                             alt='Course'
                         />
                     }
@@ -320,15 +356,21 @@ export const CourseRegisterPage = () => {
                         </div>
                         <div className='col-sm-10 col-md-10'>
                             <div className='row'>
-                                <div className='col'>
+                                <div className='col-sm-10 col-md-10'>
                                     <p className='lead'>
                                         Comfortable learning at a stress free pace.
                                     </p>
                                 </div>
-                                <div className='col-2'>
-                                    <Link className='btn btn-md main-color text-white btn-outline-dark' to='#'>
-                                        Register
-                                    </Link>
+                                <div className='col-sm-2 col-md-2'>
+                                    {authState?.isAuthenticated ?
+                                        <button className='btn btn-md main-color text-white btn-outline-dark' onClick={onRegister}>
+                                            Register
+                                        </button>
+                                        :
+                                        <Link className='btn btn-md main-color text-white btn-outline-dark' to='/login'>
+                                            Login To Register
+                                        </Link>
+                                    }
                                 </div>
                             </div>
 

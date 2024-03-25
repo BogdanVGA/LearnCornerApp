@@ -10,7 +10,7 @@ export const ReturnCourse: React.FC<{ course: CourseModel }> = (props) => {
                 {props.course.image ?
                     <img
                         src={`data:image/jpeg;base64,${props.course.image}`}
-                        className='col-9'
+                        className='col-12'
                         height='200'
                         alt='Course'
                     />
@@ -25,7 +25,7 @@ export const ReturnCourse: React.FC<{ course: CourseModel }> = (props) => {
                 <h5 className='mt-4'>{props.course.title}</h5>
                 <h6>{props.course.author}</h6>
                 <p>{props.course.courseType === 'online' ? 'Online course' : 'Onsite course'}</p>
-                <Link className='btn col-9 main-color text-white btn-outline-dark' to={`/register/${props.course.id}`}>
+                <Link className='btn col-12 main-color text-white btn-outline-dark' to={`/register/${props.course.id}`}>
                     Register
                 </Link>
 
