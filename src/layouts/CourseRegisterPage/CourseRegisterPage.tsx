@@ -38,91 +38,90 @@ export const CourseRegisterPage = () => {
     const courseId = (window.location.pathname).split('/')[2];
 
     useEffect(() => {
-
         const fetchCourse = async () => {
-            const baseUrl: string = `http://localhost:8080/api/courses/${courseId}`;
+            try {
+                const baseUrl: string = `http://localhost:8080/api/courses/${courseId}`;
 
-            const response = await fetch(baseUrl);
+                const response = await fetch(baseUrl);
+                if (!response.ok) {
+                    throw new Error('Error retrieving course...');
+                }
 
-            if (!response.ok) {
-                throw new Error('Error retrieving course...');
+                const responseJson = await response.json();
+
+                const loadedCourse: CourseModel = {
+                    id: responseJson.id,
+                    title: responseJson.title,
+                    author: responseJson.author,
+                    description: responseJson.description,
+                    category: responseJson.category,
+                    courseType: responseJson.courseType,
+                    image: responseJson.image,
+                };
+
+                setCourse(loadedCourse);
+                setIsLoading(false);
+
+            } catch (error: any) {
+                setModalMessage(error.message);
+                setShowModal(true);
+            } finally {
+                setIsLoading(false);
             }
-
-            const responseJson = await response.json();
-
-            const loadedCourse: CourseModel = {
-                id: responseJson.id,
-                title: responseJson.title,
-                author: responseJson.author,
-                description: responseJson.description,
-                category: responseJson.category,
-                courseType: responseJson.courseType,
-                image: responseJson.image,
-            };
-
-            setCourse(loadedCourse);
-            setIsLoading(false);
         };
-        fetchCourse().catch((error: any) => {
-            setIsLoading(false);
-            setModalMessage(error.message);
-            setShowModal(true);
-        })
+        fetchCourse();
     }, [courseId]);
 
     useEffect(() => {
-
         const fetchCourseReviews = async () => {
+            try {
+                const reviewUrl: string = `http://localhost:8080/api/reviews/search/byCourseId?courseId=${courseId}`;
 
-            const reviewUrl: string = `http://localhost:8080/api/reviews/search/byCourseId?courseId=${courseId}`;
+                const responseReviews = await fetch(reviewUrl);
+                if (!responseReviews.ok) {
+                    throw new Error('Error retrieving course reviews...');
+                }
 
-            const responseReviews = await fetch(reviewUrl);
+                const responseJsonReviews = await responseReviews.json();
+                const responseData = responseJsonReviews.content;
 
-            if (!responseReviews.ok) {
-                throw new Error('Error retrieving course reviews...');
+                const loadedReviews: ReviewModel[] = [];
+                let weightedStarReviews: number = 0;
+
+                for (const key in responseData) {
+                    loadedReviews.push({
+                        id: responseData[key].id,
+                        username: responseData[key].username,
+                        courseId: responseData[key].courseId,
+                        reviewText: responseData[key].reviewText,
+                        rating: responseData[key].rating,
+                        date: responseData[key].reviewDate,
+                    });
+                    weightedStarReviews = weightedStarReviews + responseData[key].rating;
+                }
+
+                if (loadedReviews) {
+                    const round = (Math.round((weightedStarReviews / loadedReviews.length) * 2) / 2).toFixed(1);
+                    setTotalStars(Number(round));
+                }
+
+                setReviews(loadedReviews);
+                setIsLoadingReview(false);
+
+            } catch (error: any) {
+                setModalMessage(error.message);
+                setShowModal(true);
+            } finally {
+                setIsLoadingReview(false);
             }
-
-            const responseJsonReviews = await responseReviews.json();
-
-            const responseData = responseJsonReviews.content;
-
-            const loadedReviews: ReviewModel[] = [];
-
-            let weightedStarReviews: number = 0;
-
-            for (const key in responseData) {
-                loadedReviews.push({
-                    id: responseData[key].id,
-                    username: responseData[key].username,
-                    courseId: responseData[key].courseId,
-                    reviewText: responseData[key].reviewText,
-                    rating: responseData[key].rating,
-                    date: responseData[key].reviewDate,
-                });
-                weightedStarReviews = weightedStarReviews + responseData[key].rating;
-            }
-
-            if (loadedReviews) {
-                const round = (Math.round((weightedStarReviews / loadedReviews.length) * 2) / 2).toFixed(1);
-                setTotalStars(Number(round));
-            }
-
-            setReviews(loadedReviews);
-            setIsLoadingReview(false);
         };
-
-        fetchCourseReviews().catch((error: any) => {
-            setIsLoadingReview(false);
-            setModalMessage(error.message);
-            setShowModal(true);
-        })
+        fetchCourseReviews();
     }, [courseId]);
 
     useEffect(() => {
-
         const fetchCourseEvents = async () => {
-
-            const eventUrl: string = `http://localhost:8080/api/events/search/byCourseId?courseId=${courseId}`;
+            try {
+                const eventUrl: string = `http://localhost:8080/api/events/search/byCourseId?courseId=${courseId}`;
 
             const responseEvents = await fetch(eventUrl);
 
@@ -150,21 +149,20 @@ export const CourseRegisterPage = () => {
 
             setCourseEvents(loadedEvents);
             setIsLoadingEvent(false);
-        };
 
-        fetchCourseEvents().catch((error: any) => {
-            setIsLoadingEvent(false);
-            setModalMessage(error.message);
-            setShowModal(true);
-        })
+            } catch(error: any) {
+                setModalMessage(error.message);
+                setShowModal(true);
+            } finally {
+                setIsLoadingEvent(false);
+            }    
+        };
+        fetchCourseEvents();
     }, [courseId, user]);
 
     useEffect(() => {
-
         const fetchUserData = async () => {
-
             if (authState && authState.isAuthenticated) {
-
                 try {
                     const userInfo = await oktaAuth.getUser();
                     const baseUrl: string = `http://localhost:8080/api/user?username=${userInfo.preferred_username}`;
