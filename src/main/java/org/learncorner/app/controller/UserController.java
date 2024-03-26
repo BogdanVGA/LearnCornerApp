@@ -1,9 +1,11 @@
 package org.learncorner.app.controller;
 
 import org.learncorner.app.DTO.UserUpdateDTO;
+import org.learncorner.app.entity.User;
 import org.learncorner.app.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.ReactiveSecurityContextHolder;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.oauth2.jwt.Jwt;
@@ -22,46 +24,27 @@ public class UserController {
         this.userService = userService;
     }
 
+    @PreAuthorize("#username == authentication.details.claims['sub']")
     @GetMapping("/user")
-    public Mono<ResponseEntity<?>> getUserByUsername(@RequestParam String username) {
-        return ReactiveSecurityContextHolder.getContext()
-                .map(SecurityContext::getAuthentication)
-                .flatMap(authentication -> {
-                    // Retrieve the Jwt from the authentication details.
-                    Jwt jwt = (Jwt) authentication.getDetails();
-                    String jwtUsername = jwt.getClaimAsString("sub");
-                    if (jwtUsername == null || !jwtUsername.equals(username)) {
-                        return Mono.just(ResponseEntity.status(403).body("Access denied: User mismatch."));
-                    } else {
-                        return userService.getUserByUsername(username)
-                                .map(ResponseEntity::ok)
-                                .defaultIfEmpty(ResponseEntity.notFound().build());
-                    }
-                });
+    public Mono<ResponseEntity<User>> getUserByUsername(@RequestParam String username) {
+        return userService.getUserByUsername(username)
+                .map(ResponseEntity::ok)
+                .defaultIfEmpty(ResponseEntity.notFound().build());
     }
 
+    @PreAuthorize("#username == authentication.details.claims['sub']")
     @PutMapping("/user/update")
-    public Mono<ResponseEntity<?>> updateUser(@RequestParam String username,
-                                              @RequestBody UserUpdateDTO userData) {
-        return ReactiveSecurityContextHolder.getContext()
-                .map(SecurityContext::getAuthentication)
-                .flatMap(authentication -> {
-                    Jwt jwt = (Jwt) authentication.getDetails();
-                    String jwtUsername = jwt.getClaimAsString("sub");
-                    if (jwtUsername == null || !jwtUsername.equals(username)) {
-                        return Mono.just(ResponseEntity.status(403).body("Access denied: User mismatch"));
-                    } else {
-                        return userService.getUserByUsername(username)
-                                .flatMap(user -> {
-                                    user.setFirstName(userData.getFirstName());
-                                    user.setLastName(userData.getLastName());
-                                    user.setEmail(userData.getEmail());
-                                    return userService.updateUser(user)
-                                            .thenReturn(ResponseEntity.status(202).body(user));
-                                })
-                                .defaultIfEmpty(ResponseEntity.notFound().build());
-                    }
-                });
+    public Mono<ResponseEntity<User>> updateUser(@RequestParam String username,
+                                                 @RequestBody UserUpdateDTO userData) {
+        return userService.getUserByUsername(username)
+                .flatMap(user -> {
+                    user.setFirstName(userData.getFirstName());
+                    user.setLastName(userData.getLastName());
+                    user.setEmail(userData.getEmail());
+                    return userService.updateUser(user)
+                            .thenReturn(ResponseEntity.status(202).body(user));
+                })
+                .defaultIfEmpty(ResponseEntity.notFound().build());
     }
 }
 
