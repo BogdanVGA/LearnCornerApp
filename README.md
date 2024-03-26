@@ -4,7 +4,7 @@ Full stack web app with a Spring Webflux reactive backend and a React frontend. 
 User roles:
 The app implements three types of user roles, each with its own set of functionalities.
 Users: can view published courses, can enroll to a particular course and can post a review for that course after enrollment. They are able to update their user profile.
-Authors: can view published courses, can create and publish new courses. Thay are able to update their user profile.
+Authors: can view published courses, can create and publish new courses. They are able to update their user profile.
 Admin: can delete published courses, reviews and course enrollments.
 
 Database:
