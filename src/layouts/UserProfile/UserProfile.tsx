@@ -34,7 +34,8 @@ export const UserProfile = () => {
 
                     const response = await fetch(baseUrl, requestOptions);
                     if (!response.ok) {
-                        throw new Error('Error retrieving user data...');
+                        const errorText = await response.text();
+                        throw new Error(`Error retrieving user data: ${errorText}`);
                     }
 
                     const userData = await response.json();
