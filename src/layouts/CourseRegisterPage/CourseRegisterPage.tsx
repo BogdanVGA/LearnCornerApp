@@ -265,13 +265,13 @@ export const CourseRegisterPage = () => {
                         {course?.image ?
                             <img
                                 src={`data:image/jpeg;base64,${course?.image}`}
-                                style={{ width: '100%', height: 'auto' }}
+                                className='img-fluid rounded-start'
                                 alt='Course'
                             />
                             :
                             <img
                                 src={require('./../../Images/CoursesImages/diesel_eng.jpg')}
-                                style={{ width: '100%', height: 'auto' }}
+                                className='img-fluid rounded-start'
                                 alt='Course'
                             />
                         }
@@ -325,13 +325,13 @@ export const CourseRegisterPage = () => {
                     {course?.image ?
                         <img
                             src={`data:image/jpeg;base64,${course?.image}`}
-                            style={{ width: '100%', height: 'auto' }}
+                            className='img-fluid rounded-start'
                             alt='Course'
                         />
                         :
                         <img
                             src={require('./../../Images/CoursesImages/diesel_eng.jpg')}
-                            style={{ width: '100%', height: 'auto' }}
+                            className='img-fluid rounded-start'
                             alt='Course'
                         />
                     }

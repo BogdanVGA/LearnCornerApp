@@ -4,6 +4,7 @@ import UserHistoryModel from "../../../model/UserHistoryModel";
 import { UserHistoryItem } from "./UserHistoryItem";
 import { Link } from "react-router-dom";
 import { useOktaAuth } from "@okta/okta-react";
+import { Modal } from "../../Utils/Modal";
 
 export const UserCoursesPage = () => {
 
@@ -11,58 +12,59 @@ export const UserCoursesPage = () => {
 
     const [userHistory, setUserHistory] = useState<UserHistoryModel[]>([]);
     const [totalHistoryItems, setTotalHistoryItems] = useState(0);
+
     const [isLoading, setIsLoading] = useState(true);
-    const [httpError, setHttpError] = useState(null);
+    const [showModal, setShowModal] = useState(false);
+    const [modalMessage, setModalMessage] = useState('');
 
     useEffect(() => {
-
         const fetchCourses = async () => {
-
             if (authState && authState.isAuthenticated) {
 
-                const loadedUsername = (await oktaAuth.getUser()).preferred_username;
+                try {
+                    const loadedUsername = (await oktaAuth.getUser()).preferred_username;
+                    const baseUrl: string = `http://localhost:8080/api/user/${loadedUsername}/courses`;
+                    const requestOptions = {
+                        method: 'GET',
+                        headers: {
+                            Authorization: `Bearer ${authState?.accessToken?.accessToken}`,
+                            'Content-Type': 'application/json'
+                        }
+                    };
 
-                const baseUrl: string = `http://localhost:8080/api/user/${loadedUsername}/courses`;
-                const requestOptions = {
-                    method: 'GET',
-                    headers: {
-                        Authorization: `Bearer ${authState?.accessToken?.accessToken}`,
-                        'Content-Type': 'application/json'
+                    const response = await fetch(baseUrl, requestOptions);
+                    if (!response.ok) {
+                        throw new Error('Error retrieving user course history...');
                     }
-                };
+                    const responseJson = await response.json();
 
-                const response = await fetch(baseUrl, requestOptions);
+                    const loadedUserHistoryItems: UserHistoryModel[] = [];
+                    for (const key in responseJson) {
+                        loadedUserHistoryItems.push({
+                            rowId: responseJson[key].rowId,
+                            courseId: responseJson[key].courseId,
+                            courseTitle: responseJson[key].courseTitle,
+                            courseType: responseJson[key].courseType,
+                            courseImage: responseJson[key].courseImage,
+                            startDate: responseJson[key].startDate,
+                            endDate: responseJson[key].endDate,
+                            status: responseJson[key].status,
+                        });
+                    }
 
-                if (!response.ok) {
-                    throw new Error('Error retrieving user course history...');
+                    setTotalHistoryItems(loadedUserHistoryItems.length);
+                    setUserHistory(loadedUserHistoryItems);
+
+                } catch (error: any) {
+                    setModalMessage(error.message);
+                    setShowModal(true);
+                } finally {
+                    setIsLoading(false)
                 }
-
-                const responseJson = await response.json();
-
-                const loadedUserHistoryItems: UserHistoryModel[] = [];
-
-                for (const key in responseJson) {
-                    loadedUserHistoryItems.push({
-                        rowId: responseJson[key].rowId,
-                        courseId: responseJson[key].courseId,
-                        courseTitle: responseJson[key].courseTitle,
-                        courseType: responseJson[key].courseType,
-                        courseImage: responseJson[key].courseImage,
-                        startDate: responseJson[key].startDate,
-                        endDate: responseJson[key].endDate,
-                        status: responseJson[key].status,
-                    });
-                }
-
-                setTotalHistoryItems(loadedUserHistoryItems.length);
-                setUserHistory(loadedUserHistoryItems);
             }
             setIsLoading(false);
         };
-        fetchCourses().catch((error: any) => {
-            setIsLoading(false);
-            setHttpError(error.message);
-        })
+        fetchCourses();
     }, [authState, oktaAuth]);
 
     if (isLoading) {
@@ -71,25 +73,22 @@ export const UserCoursesPage = () => {
         )
     }
 
-    if (httpError) {
-        return (
-            <div className='container m-5'>
-                <p>{httpError}</p>
-            </div>
-        )
+    const onCloseModal = () => {
+        setShowModal(false);
     }
 
     return (
         <div>
+            <Modal showModal={showModal} modalMessage={modalMessage} onClose={onCloseModal} />
             <div className='container'>
                 <div>
                     {totalHistoryItems > 0 ?
                         <>
-                            <div className='mt-3'>
+                            <div className='mt-3 mb-3'>
                                 <h5>Number of results: {totalHistoryItems}</h5>
                             </div>
                             {userHistory.map(userHistoryItem => (
-                                <UserHistoryItem userHistoryItem={userHistoryItem} key={userHistoryItem.rowId}/>
+                                <UserHistoryItem userHistoryItem={userHistoryItem} key={userHistoryItem.rowId} />
                             ))}
                         </>
                         :
